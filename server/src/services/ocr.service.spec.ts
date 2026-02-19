@@ -189,6 +189,70 @@ describe(OcrService.name, () => {
       expect(mocks.ocr.upsert).not.toHaveBeenCalled();
     });
 
+    it('should use preview path directly for non-SVG assets', async () => {
+      const asset = AssetFactory.create();
+      mocks.assetJob.getForOcr.mockResolvedValue({
+        visibility: AssetVisibility.Timeline,
+        previewFile: '/preview.jpg',
+        originalPath: '/some/photo.jpg',
+      });
+      mockOcrResult();
+
+      await sut.handleOcr({ id: asset.id });
+
+      expect(mocks.media.generateOcrInputWithBackground).not.toHaveBeenCalled();
+      expect(mocks.machineLearning.ocr).toHaveBeenCalledWith('/preview.jpg', expect.any(Object));
+    });
+
+    it('should use flattened image with solid background for SVG assets', async () => {
+      const asset = AssetFactory.create();
+      const tempPath = '/tmp/immich-ocr-123.jpg';
+      mocks.assetJob.getForOcr.mockResolvedValue({
+        visibility: AssetVisibility.Timeline,
+        previewFile: '/preview.jpg',
+        originalPath: '/some/file.svg',
+      });
+      mocks.media.generateOcrInputWithBackground.mockResolvedValue(tempPath);
+      mockOcrResult();
+
+      await sut.handleOcr({ id: asset.id });
+
+      expect(mocks.media.generateOcrInputWithBackground).toHaveBeenCalledWith('/preview.jpg');
+      expect(mocks.machineLearning.ocr).toHaveBeenCalledWith(tempPath, expect.any(Object));
+    });
+
+    it('should use preview path directly for non-SVG assets', async () => {
+      const asset = AssetFactory.create();
+      mocks.assetJob.getForOcr.mockResolvedValue({
+        visibility: AssetVisibility.Timeline,
+        previewFile: '/preview.jpg',
+        originalPath: '/some/photo.jpg',
+      });
+      mockOcrResult();
+
+      await sut.handleOcr({ id: asset.id });
+
+      expect(mocks.media.generateOcrInputWithBackground).not.toHaveBeenCalled();
+      expect(mocks.machineLearning.ocr).toHaveBeenCalledWith('/preview.jpg', expect.any(Object));
+    });
+
+    it('should use flattened image with solid background for SVG assets', async () => {
+      const asset = AssetFactory.create();
+      const tempPath = '/tmp/immich-ocr-123.jpg';
+      mocks.assetJob.getForOcr.mockResolvedValue({
+        visibility: AssetVisibility.Timeline,
+        previewFile: '/preview.jpg',
+        originalPath: '/some/file.svg',
+      });
+      mocks.media.generateOcrInputWithBackground.mockResolvedValue(tempPath);
+      mockOcrResult();
+
+      await sut.handleOcr({ id: asset.id });
+
+      expect(mocks.media.generateOcrInputWithBackground).toHaveBeenCalledWith('/preview.jpg');
+      expect(mocks.machineLearning.ocr).toHaveBeenCalledWith(tempPath, expect.any(Object));
+    });
+
     describe('search tokenization', () => {
       it('should generate bigrams for Chinese text', async () => {
         const asset = AssetFactory.create();

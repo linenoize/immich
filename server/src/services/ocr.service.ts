@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { unlink } from 'node:fs/promises';
 import { JOBS_ASSET_PAGINATION_SIZE } from 'src/constants';
 import { OnJob } from 'src/decorators';
 import { AssetVisibility, JobName, JobStatus, QueueName } from 'src/enum';
@@ -53,14 +54,26 @@ export class OcrService extends BaseService {
       return JobStatus.Skipped;
     }
 
-    const ocrResults = await this.machineLearningRepository.ocr(asset.previewFile, machineLearning.ocr);
-    const { ocrDataList, searchText } = this.parseOcrResults(id, ocrResults);
-    await this.ocrRepository.upsert(id, ocrDataList, searchText);
+    const isSvg = asset.originalPath?.toLowerCase().endsWith('.svg');
+    let ocrInputPath: string | null = null;
+    try {
+      if (isSvg) {
+        ocrInputPath = await this.mediaRepository.generateOcrInputWithBackground(asset.previewFile);
+      }
+      const imagePath = ocrInputPath ?? asset.previewFile;
+      const ocrResults = await this.machineLearningRepository.ocr(imagePath, machineLearning.ocr);
+      const { ocrDataList, searchText } = this.parseOcrResults(id, ocrResults);
+      await this.ocrRepository.upsert(id, ocrDataList, searchText);
 
-    await this.assetRepository.upsertJobStatus({ assetId: id, ocrAt: new Date() });
+      await this.assetRepository.upsertJobStatus({ assetId: id, ocrAt: new Date() });
 
-    this.logger.debug(`Processed ${ocrResults.text.length} OCR result(s) for ${id}`);
-    return JobStatus.Success;
+      this.logger.debug(`Processed ${ocrResults.text.length} OCR result(s) for ${id}`);
+      return JobStatus.Success;
+    } finally {
+      if (ocrInputPath) {
+        await unlink(ocrInputPath).catch(() => {});
+      }
+    }
   }
 
   private parseOcrResults(id: string, { box, boxScore, text, textScore }: OCR) {

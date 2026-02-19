@@ -428,6 +428,7 @@ where
 -- AssetJobRepository.getForOcr
 select
   "asset"."visibility",
+  "asset"."originalPath",
   (
     select
       "asset_file"."path"

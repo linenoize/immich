@@ -10,8 +10,10 @@ export const newMediaRepositoryMock = (): Mocked<RepositoryInterface<MediaReposi
     generateThumbhash: vitest.fn().mockResolvedValue(Buffer.from('')),
     decodeImage: vitest.fn().mockResolvedValue({ data: Buffer.from(''), info: {} }),
     extract: vitest.fn().mockResolvedValue(null),
+    generateOcrInputWithBackground: vitest.fn(),
     probe: vitest.fn(),
     transcode: vitest.fn(),
+    generateOcrInputWithBackground: vitest.fn(),
     getImageDimensions: vitest.fn(),
   };
 };

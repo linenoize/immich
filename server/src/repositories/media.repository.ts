@@ -3,6 +3,8 @@ import { ExifDateTime, exiftool, WriteTags } from 'exiftool-vendored';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import { Duration } from 'luxon';
 import fs from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { Writable } from 'node:stream';
 import sharp from 'sharp';
 import { ORIENTATION_TO_SHARP_ROTATION } from 'src/constants';
@@ -180,6 +182,23 @@ export class MediaRepository {
     });
 
     await decoded.toFile(output);
+  }
+
+  /**
+   * Renders the image at previewPath with a solid background (e.g. for OCR of transparent SVGs).
+   * Writes to a temporary file and returns its path. Caller must unlink the file when done.
+   */
+  async generateOcrInputWithBackground(
+    previewPath: string,
+    options: { backgroundColor?: { r: number; g: number; b: number } } = {},
+  ): Promise<string> {
+    const background = options.backgroundColor ?? { r: 255, g: 255, b: 255 };
+    const tempPath = path.join(tmpdir(), `immich-ocr-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`);
+    await sharp(previewPath)
+      .flatten({ background })
+      .jpeg()
+      .toFile(tempPath);
+    return tempPath;
   }
 
   private async getImageDecodingPipeline(input: string | Buffer, options: DecodeToBufferOptions) {
