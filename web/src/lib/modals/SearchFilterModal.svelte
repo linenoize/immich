@@ -66,51 +66,70 @@
     return validQueryTypes.has(storedQueryType) ? storedQueryType : QueryType.SMART;
   }
 
-  let query = '';
-  if ('query' in searchQuery && searchQuery.query) {
-    query = searchQuery.query;
-  }
-  if ('originalFileName' in searchQuery && searchQuery.originalFileName) {
-    query = searchQuery.originalFileName;
+  function getFilterFromSearchQuery(searchQuery: MetadataSearchDto | SmartSearchDto): SearchFilter {
+    let query = '';
+    if ('query' in searchQuery && searchQuery.query) {
+      query = searchQuery.query;
+    }
+    if ('originalFileName' in searchQuery && searchQuery.originalFileName) {
+      query = searchQuery.originalFileName;
+    }
+    return {
+      query,
+      ocr: searchQuery.ocr,
+      queryType: defaultQueryType(),
+      personIds: new SvelteSet('personIds' in searchQuery ? searchQuery.personIds : []),
+      tagIds:
+        'tagIds' in searchQuery
+          ? searchQuery.tagIds === null
+            ? null
+            : new SvelteSet(searchQuery.tagIds)
+          : new SvelteSet(),
+      location: {
+        country: withNullAsUndefined(searchQuery.country),
+        state: withNullAsUndefined(searchQuery.state),
+        city: withNullAsUndefined(searchQuery.city),
+      },
+      camera: {
+        make: withNullAsUndefined(searchQuery.make),
+        model: withNullAsUndefined(searchQuery.model),
+        lensModel: withNullAsUndefined(searchQuery.lensModel),
+      },
+      date: {
+        takenAfter: searchQuery.takenAfter ? toStartOfDayDate(searchQuery.takenAfter) : undefined,
+        takenBefore: searchQuery.takenBefore ? toStartOfDayDate(searchQuery.takenBefore) : undefined,
+      },
+      display: {
+        isArchive: searchQuery.visibility === AssetVisibility.Archive,
+        isFavorite: searchQuery.isFavorite ?? false,
+        isNotInAlbum: 'isNotInAlbum' in searchQuery ? (searchQuery.isNotInAlbum ?? false) : false,
+      },
+      mediaType:
+        searchQuery.type === AssetTypeEnum.Image
+          ? MediaType.Image
+          : searchQuery.type === AssetTypeEnum.Video
+            ? MediaType.Video
+            : MediaType.All,
+      rating: searchQuery.rating,
+    };
   }
 
   let filter: SearchFilter = $state({
-    query,
-    ocr: searchQuery.ocr,
+    query: '',
+    ocr: undefined,
     queryType: defaultQueryType(),
-    personIds: new SvelteSet('personIds' in searchQuery ? searchQuery.personIds : []),
-    tagIds:
-      'tagIds' in searchQuery
-        ? searchQuery.tagIds === null
-          ? null
-          : new SvelteSet(searchQuery.tagIds)
-        : new SvelteSet(),
-    location: {
-      country: withNullAsUndefined(searchQuery.country),
-      state: withNullAsUndefined(searchQuery.state),
-      city: withNullAsUndefined(searchQuery.city),
-    },
-    camera: {
-      make: withNullAsUndefined(searchQuery.make),
-      model: withNullAsUndefined(searchQuery.model),
-      lensModel: withNullAsUndefined(searchQuery.lensModel),
-    },
-    date: {
-      takenAfter: searchQuery.takenAfter ? toStartOfDayDate(searchQuery.takenAfter) : undefined,
-      takenBefore: searchQuery.takenBefore ? toStartOfDayDate(searchQuery.takenBefore) : undefined,
-    },
-    display: {
-      isArchive: searchQuery.visibility === AssetVisibility.Archive,
-      isFavorite: searchQuery.isFavorite ?? false,
-      isNotInAlbum: 'isNotInAlbum' in searchQuery ? (searchQuery.isNotInAlbum ?? false) : false,
-    },
-    mediaType:
-      searchQuery.type === AssetTypeEnum.Image
-        ? MediaType.Image
-        : searchQuery.type === AssetTypeEnum.Video
-          ? MediaType.Video
-          : MediaType.All,
-    rating: searchQuery.rating,
+    personIds: new SvelteSet(),
+    tagIds: new SvelteSet(),
+    location: {},
+    camera: {},
+    date: {},
+    display: { isArchive: false, isFavorite: false, isNotInAlbum: false },
+    mediaType: MediaType.All,
+    rating: undefined,
+  });
+
+  $effect(() => {
+    filter = getFilterFromSearchQuery(searchQuery);
   });
 
   const resetForm = () => {

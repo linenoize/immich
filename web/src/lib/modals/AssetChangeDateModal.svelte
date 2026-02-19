@@ -20,7 +20,8 @@
 
   let { initialDate = DateTime.now(), initialTimeZone, timezoneInput = true, asset, onClose }: Props = $props();
 
-  let selectedDate = $state(initialDate.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"));
+  let selectedDate = $state("");
+  $effect(() => { selectedDate = initialDate.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"); });
   const timezones = $derived(getTimezones(selectedDate));
 
   // svelte-ignore state_referenced_locally

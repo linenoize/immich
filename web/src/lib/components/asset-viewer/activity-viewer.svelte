@@ -53,7 +53,7 @@
   let activityHeight: number = $state(0);
   let chatHeight: number = $state(0);
   let divHeight = $derived(innerHeight - activityHeight);
-  let previousAssetId: string | undefined = $state(assetId);
+  let previousAssetId = $state(undefined as string | undefined);
   let message = $state('');
   let isSendingMessage = $state(false);
 

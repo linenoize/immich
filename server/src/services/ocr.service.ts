@@ -58,7 +58,14 @@ export class OcrService extends BaseService {
     let ocrInputPath: string | null = null;
     try {
       if (isSvg) {
-        ocrInputPath = await this.mediaRepository.generateOcrInputWithBackground(asset.previewFile);
+        try {
+          ocrInputPath = await this.mediaRepository.generateOcrInputWithBackground(asset.previewFile);
+        } catch (error) {
+          this.logger.warn(
+            `Failed to generate OCR input with background for SVG ${id}, using preview: ${error}`,
+          );
+          ocrInputPath = null;
+        }
       }
       const imagePath = ocrInputPath ?? asset.previewFile;
       const ocrResults = await this.machineLearningRepository.ocr(imagePath, machineLearning.ocr);

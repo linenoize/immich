@@ -253,6 +253,23 @@ describe(OcrService.name, () => {
       expect(mocks.machineLearning.ocr).toHaveBeenCalledWith(tempPath, expect.any(Object));
     });
 
+    it('should fall back to preview path when SVG background generation throws', async () => {
+      const asset = AssetFactory.create();
+      mocks.assetJob.getForOcr.mockResolvedValue({
+        visibility: AssetVisibility.Timeline,
+        previewFile: '/preview.jpg',
+        originalPath: '/some/file.svg',
+      });
+      mocks.media.generateOcrInputWithBackground.mockRejectedValue(new Error('sharp failed'));
+      mockOcrResult();
+
+      expect(await sut.handleOcr({ id: asset.id })).toEqual(JobStatus.Success);
+
+      expect(mocks.media.generateOcrInputWithBackground).toHaveBeenCalledWith('/preview.jpg');
+      expect(mocks.machineLearning.ocr).toHaveBeenCalledWith('/preview.jpg', expect.any(Object));
+      expect(mocks.ocr.upsert).toHaveBeenCalled();
+    });
+
     describe('search tokenization', () => {
       it('should generate bigrams for Chinese text', async () => {
         const asset = AssetFactory.create();

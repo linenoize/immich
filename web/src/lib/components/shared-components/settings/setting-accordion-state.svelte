@@ -25,7 +25,8 @@
   }
 
   let { queryParam, state = writable(getParamValues(queryParam)), children }: Props = $props();
-  setAccordionState(state);
+
+  $effect(() => setAccordionState(state));
 
   const searchParams = new SvelteURLSearchParams(page.url.searchParams);
 
