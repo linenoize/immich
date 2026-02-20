@@ -1,3 +1,4 @@
+import { assetViewerManager } from '$lib/managers/asset-viewer-manager.svelte';
 import { assetCacheManager } from '$lib/managers/AssetCacheManager.svelte';
 import { CancellableTask } from '$lib/utils/cancellable-task';
 
@@ -50,6 +51,9 @@ class OcrManager {
 
   toggleOcrBoundingBox() {
     this.showOverlay = !this.showOverlay;
+    if (this.showOverlay) {
+      assetViewerManager.isShowImageBackground = true;
+    }
   }
 }
 

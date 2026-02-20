@@ -422,12 +422,16 @@
       !activityManager.isLoading,
   );
 
+  const isLikelyTransparentImage = $derived(
+    (asset.originalPath?.toLowerCase() ?? '').endsWith('.svg'),
+  );
+
   const showOcrButton = $derived(
     $slideshowState === SlideshowState.None &&
       asset.type === AssetTypeEnum.Image &&
       !(asset.exifInfo?.projectionType === 'EQUIRECTANGULAR') &&
       !assetViewerManager.isShowEditor &&
-      ocrManager.hasOcrData,
+      (ocrManager.hasOcrData || isLikelyTransparentImage),
   );
 
   const { Tag } = $derived(getAssetActions($t, asset));

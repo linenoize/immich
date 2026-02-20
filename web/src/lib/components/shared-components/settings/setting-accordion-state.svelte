@@ -26,7 +26,9 @@
 
   let { queryParam, state = writable(getParamValues(queryParam)), children }: Props = $props();
 
-  $effect(() => setAccordionState(state));
+  // Must run synchronously so children (setting-accordion) get context before first render
+  // svelte-ignore state_referenced_locally
+  setAccordionState(state);
 
   const searchParams = new SvelteURLSearchParams(page.url.searchParams);
 

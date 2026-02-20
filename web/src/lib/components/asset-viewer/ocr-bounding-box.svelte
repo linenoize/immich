@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { themeManager } from '$lib/managers/theme-manager.svelte';
   import type { OcrBox } from '$lib/utils/ocr-utils';
   import { calculateBoundingBoxDimensions } from '$lib/utils/ocr-utils';
 
@@ -17,6 +18,12 @@
   const transformOrigin = $derived(
     `${dimensions.centerX - dimensions.minX}px ${dimensions.centerY - dimensions.minY}px`,
   );
+
+  const textOverlayClass = $derived(
+    themeManager.isDark
+      ? 'text-white bg-black/80 group-hover:bg-black/95'
+      : 'text-gray-900 bg-white/90 group-hover:bg-white',
+  );
 </script>
 
 <div class="absolute group left-0 top-0 pointer-events-none">
@@ -26,9 +33,9 @@
     style="width: {dimensions.width}px; height: {dimensions.height}px; transform: {transform}; transform-origin: {transformOrigin};"
   ></div>
 
-  <!-- Text overlay - always rendered but invisible, allows text selection and copy -->
+  <!-- Text overlay - theme-aware contrast for readability, allows text selection and copy -->
   <div
-    class="absolute flex items-center justify-center text-transparent text-sm px-2 py-1 pointer-events-auto cursor-text whitespace-pre-wrap wrap-break-word select-text group-hover:text-white group-hover:bg-black/75 group-hover:z-10"
+    class="absolute flex items-center justify-center text-sm px-2 py-1 pointer-events-auto cursor-text whitespace-pre-wrap wrap-break-word select-text transition-colors group-hover:z-10 {textOverlayClass}"
     style="width: {dimensions.width}px; height: {dimensions.height}px; transform: {transform}; transform-origin: {transformOrigin};"
   >
     {ocrBox.text}

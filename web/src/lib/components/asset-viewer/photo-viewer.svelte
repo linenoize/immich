@@ -212,9 +212,15 @@
     <div
       use:zoomImageAction={{ disabled: isOcrActive }}
       {...useSwipe(onSwipe)}
-      class="h-full w-full"
+      class="relative h-full w-full"
       transition:fade={{ duration: haveFadeTransition ? assetViewerFadeDuration : 0 }}
     >
+      {#if assetViewerManager.isShowImageBackground}
+        <div
+          class="absolute inset-0 flex items-center justify-center bg-transparency-pattern"
+          aria-hidden="true"
+        ></div>
+      {/if}
       {#if $slideshowState !== SlideshowState.None && $slideshowLook === SlideshowLook.BlurredBackground}
         <img
           src={imageLoaderUrl}
@@ -227,7 +233,7 @@
         bind:this={assetViewerManager.imgRef}
         src={imageLoaderUrl}
         alt={$getAltText(toTimelineAsset(asset))}
-        class="h-full w-full {$slideshowState === SlideshowState.None
+        class="relative z-0 h-full w-full {$slideshowState === SlideshowState.None
           ? 'object-contain'
           : slideshowLookCssMapping[$slideshowLook]}"
         draggable="false"
@@ -252,6 +258,17 @@
 </div>
 
 <style>
+  .bg-transparency-pattern {
+    background-color: #808080;
+    background-image:
+      linear-gradient(45deg, #a0a0a0 25%, transparent 25%),
+      linear-gradient(-45deg, #a0a0a0 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #a0a0a0 75%),
+      linear-gradient(-45deg, transparent 75%, #a0a0a0 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  }
+
   @keyframes delayedVisibility {
     to {
       visibility: visible;

@@ -4,6 +4,7 @@ import { PersistedLocalStorage } from '$lib/utils/persisted';
 import type { ZoomImageWheelState } from '@zoom-image/core';
 
 const isShowDetailPanel = new PersistedLocalStorage<boolean>('asset-viewer-state', false);
+const isShowImageBackground = new PersistedLocalStorage<boolean>('asset-viewer-image-background', false);
 
 const createDefaultZoomState = (): ZoomImageWheelState => ({
   currentRotation: 0,
@@ -29,6 +30,18 @@ export class AssetViewerManager extends BaseEventManager<Events> {
 
   get isShowDetailPanel() {
     return isShowDetailPanel.current;
+  }
+
+  get isShowImageBackground() {
+    return isShowImageBackground.current;
+  }
+
+  set isShowImageBackground(value: boolean) {
+    isShowImageBackground.current = value;
+  }
+
+  toggleImageBackground() {
+    this.isShowImageBackground = !this.isShowImageBackground;
   }
 
   get zoomState() {
